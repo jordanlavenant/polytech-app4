@@ -31,7 +31,11 @@ msm -d -d < toto.txt
 Instruction pour debuggage
 
 ```
+<<<<<<< HEAD
 printf("dbg") // Affiche le sommet de la pile
+=======
+printf("debug") // Affiche le sommet de la pile
+>>>>>>> 4eea42690319856fcac1cf14153c1dc3d214d909
 ```
 
 ## Pseudo code `gencode()`
