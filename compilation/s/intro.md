@@ -1,5 +1,7 @@
 # Compilation
 
+[lien cours](perso.limsi.fr/lavergne`)
+
 ## Pré-requis
 
 - Algorithmique 1 (Arbres divers)
