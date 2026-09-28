@@ -16,7 +16,7 @@ Il doit produire une séquence de **token**.
         // Structure minimale
         int type;
         int value; // Si type == tok_const
-        string ident; // Si type == tok_ident
+        std::string ident; // Si type == tok_ident
 
         // Bonus
         int line;
