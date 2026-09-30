@@ -147,6 +147,8 @@ Donc si je commence avec un `A`, si je fais des réécritures avec des règles q
 
 > Une fonction contient une unique instruction
 
+---
+
 `I` $\rightarrow$ `E ';'`
 
 `1 + 2` est une **expression** mais `a = 1 + 2` est aussi une **expression**
@@ -155,9 +157,28 @@ Par contre `a + 1 + 2;` devient une **instruction**
 
 > Une instruction contient une **expression** et un **point-virgule**
 
-`E` $\rightarrow$ `A`
+---
 
-> Une expression s'occupe des **atomes**
+`E` $\rightarrow$ `P`
+
+> Une expression s'occupe des **prefixes**
+
+---
+
+`P` $\rightarrow$ `-P | !P | S`
+
+> Opérations prefixes (récursions si plusieurs préfixe d'affilé, genre `!!a`)
+
+- `!P` : `moins unaire - P`
+- `!P` : `neg log - P`
+
+---
+
+`S` $\rightarrow$ `A`
+
+> Opérations suffixes
+
+---
 
 `A` $\rightarrow$ `const | '(' E ')'`
 
@@ -187,17 +208,112 @@ Node I(...) {
 }
 ```
 
+Sans priorité des opérations
+
 ```
 Node E(...) {
-    return A();
+    Node a1 = P();
+    while (isOpbinaire(current)) {
+        int op = current.type;
+        next();
+        Node a2 = P();
+        a1 = node_2(opToNode(op), a1, a2);
+    }
+    return a1;
+}
+```
+
+Avec priorité des opérations
+
+```
+Node E(...) {
+   return EE(0);
+}
+```
+
+_Exemple de tableau des valeurs de priorités (struct) :_
+
+```
+OP = [
+    ...
+    {
+        token: TOK_MUL;c
+        priority: 7;
+        associativity: 1;
+        nd: ND_MUL;
+    },
+    {
+        token: TOK_ADD;
+        priority: 6;
+        associativity: 1;
+        nd: ND_ADD;
+    },
+    {
+        token: TOK_EQUALS;
+        priority: 1;
+        associativity: 0;
+        nd: ND_ASSIGNEMENT;
+    },
+    ...
+]
+```
+
+| Priorité | Symboles          | Associativité |
+| -------- | ----------------- | ------------- |
+| 7        | `*` `/` `%`       | 1             |
+| 6        | `+` `-`           | 1             |
+| 5        | `<` `>` `<=` `>=` | 1             |
+| 4        | `==` `!=`         | 1             |
+| 3        | `&&`              | 1             |
+| 2        | `\|\|`            | 1             |
+| 1        | `=`               | 0             |
+
+```
+Node EE(int pmin) {
+    Node a1 = P();
+    while (1) {
+        op = NULL;
+        for (int i = 0; i < nbop; i++) {
+            if (OP[i].token == current.type) {
+                op = OP[i];
+                break;
+            }
+        }
+        if (!op || op.priority < pmin) {
+            break;
+        }
+        next();
+        Node a2 = EE(op.priority + op.associativity);
+        a1 = node_2(op.node, a1, a2);
+    }
+    return a1;
 }
 ```
 
 ```
-Node A(...) {
-    if (check(TOK_CONST)) {
-        return node_v(ND_CONST, last.value);
+Node P(...) {
+    if (check(TOK_SUBSTRACT)) {
+        Node p = P();
+        return node_1(ND_NEG, p);
     }
+
+    if (check(TOK_NOT)) {
+        Node p = P();
+        return node_1(ND_NOT, p);
+    }
+
+    Node s = S();
+    return s;
+}
+
+```
+
+```
+
+Node A(...) {
+if (check(TOK_CONST)) {
+return node_v(ND_CONST, last.value);
+}
 
     if (check(TOK_O_PARENTHESIS)) {
         Node e = E();
@@ -207,7 +323,9 @@ Node A(...) {
     ... // Autre alternative
 
     throw Error(); // Renvoie une erreur (contrat non-respecté)
+
 }
+
 ```
 
 Finalement, `anasynt()` :
@@ -216,3 +334,7 @@ Finalement, `anasynt()` :
         Node A = F(); // Appel à F
         return A;
     }
+
+```
+
+```

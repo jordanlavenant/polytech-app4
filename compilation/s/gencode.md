@@ -13,7 +13,7 @@ La generation de code pourra être ainsi :
 ```
 printf(".start")
 <code source, boucles, etc...>
-printf(".halt") // Pour éteindre la machine
+printf("halt") // Pour éteindre la machine
 ```
 
 Voir chaque instruction :
@@ -31,11 +31,7 @@ msm -d -d < toto.txt
 Instruction pour debuggage
 
 ```
-<<<<<<< HEAD
 printf("dbg") // Affiche le sommet de la pile
-=======
-printf("debug") // Affiche le sommet de la pile
->>>>>>> 4eea42690319856fcac1cf14153c1dc3d214d909
 ```
 
 ## Pseudo code `gencode()`
@@ -49,14 +45,17 @@ void gencode() {
 
 ```
 void gennode(Node N) {
+    if (SI[N.type] != NULL) {
+        printf(SI[N.type].prefix)
+        for (int i = 0; i < N.nb_children; i++) {
+            gennode(N.children[i]);
+        }
+        print(SI[N.type].suffix)
+    }
     switch (N.type) {
         case ND_CONST:
             printf("push", N.value); // On pousse sur le sommet de la pile de la machine vrituelle
             break;
-        case ND_ADD:
-            printf("add");
-            break;
-
         ...
 
         default:
@@ -64,3 +63,36 @@ void gennode(Node N) {
     }
 }
 ```
+
+_Exemple de tables pour gennode :_
+
+```
+struct SimpleInstruction {
+    Node node;
+    std::string prefix;
+    std::string suffix;
+}
+```
+
+```
+SI = [
+    {
+        ND_ADD, "", "add"
+    },
+    {
+        ND_MUL, "", "mul"
+    },
+    {
+        ND_NEG, "push 0", "sub"
+    },
+    ...
+]
+```
+
+Tableau des instructions
+
+| Noeud  | Préfixe | Suffixe |
+| ------ | ------- | ------- |
+| ND_ADD |         | add     |
+| ND_MUL |         | mul     |
+| ND_NEG | push 0  | sub     |
