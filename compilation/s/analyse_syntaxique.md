@@ -11,7 +11,7 @@ Puis on prend ces arbres, et on génère le code.
     struct Node {
         int type; // enum
         int value; // Si type = ND_CONST
-        std::string ident; // Si type = ND_IDENT
+        std::string ident; // Si type = ND_ID<ENT
 
         // Bonus
         int line;
@@ -138,8 +138,8 @@ Donc si je commence avec un `A`, si je fais des réécritures avec des règles q
 
 ##### Règles
 
-- **Expression** : Quelques chose qui **a** une valeur (tout ce qui est mathématiques)
-- **Instruction** : Quelques chose qui **n'a pas** de valeur
+- **Expression** : Quelques chose qui **a** une valeur (tout ce qui est mathématiques), mais on ne connaît pas forcément la valeur (ajout de la valeur finale de l'expression sur la pile).
+- **Instruction** : Quelques chose qui **n'a pas** de valeur (aucun ajout final sur la pile).
 
 ---
 
@@ -156,6 +156,22 @@ Donc si je commence avec un `A`, si je fais des réécritures avec des règles q
 Par contre `a + 1 + 2;` devient une **instruction**
 
 > Une instruction contient une **expression** et un **point-virgule**
+
+- `E` renvoie un arbres expression, qu'il faut transformer en noeud instruction
+
+`drop` $-$ `E`
+
+- On ajoute le mot-clé (instruction) `debug E ';'`, ainsi :
+
+`debug` $-$ `E`, donc `debug 3 + 4 * 5;` affichera $23$
+
+- Blocs : `{` `I*` `}`
+
+Chaque bloc donne un **sous-arbre**
+
+On a donc un noeud `bloc` dans notre arbre, et chaque enfant est un noeud `I`.
+
+`bloc` $-$ $n$`I`
 
 ---
 
@@ -202,6 +218,21 @@ Node F(...) {
 
 ```
 Node I(...) {
+    if (check(TOK_DEBUG)) {
+        Node e = E();
+        accept(TOK_SEMICOLON); // Manger le token ";"
+        return node_1();
+    }
+
+    if (check(TOK_O_ACCOLADE)) {
+        Node n = node(ND_BLOCK);
+        while (!check(TOK_C_ACCOLADE)) {
+            add_child(N, I());
+        }
+        return n;
+    }
+
+    // Ajouter le noeud drop au-dessus
     Node e = E(); // Parser le contenu de E
     accept(TOK_SEMICOLON); // Manger le token ";"
     return e;
@@ -335,6 +366,34 @@ Finalement, `anasynt()` :
         return A;
     }
 
-```
+#### Variables
+
+Discerner **expression** & **instruction** pour le compilateur
+
+_Exemple_
 
 ```
+{
+    int x;
+    x = 3;
+    {
+        debug x; // Affiche 3
+        int x;
+        x = 5;
+        debug x; // Affiche 5
+    }
+    debug x; // Affiche 3
+}
+```
+
+Ce programme affiche $3$, puis $5$ et enfin $3$
+
+La portée d'une variable commence au moment de **sa déclaration**, et se termine au moment où le **bloc où elle a été déclarée se termine**.
+
+Pour accéder à une variable, je parcours les **variables actuellement accessible**, **ayant le même nom**, et dont la **portée est la plus interne**.
+
+**La table de symbole** fourni **l'analyse sémantique :** Il doit interpréter les déclarations de variables, et faire les liens entre les déclarations et les utilisations via les **annotations** et la **table de symbole**
+
+#### Table de symbole
+
+[Table de symbole cours](./table_symbole.md)

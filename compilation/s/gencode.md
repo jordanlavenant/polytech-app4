@@ -56,6 +56,10 @@ void gennode(Node N) {
         case ND_CONST:
             printf("push", N.value); // On pousse sur le sommet de la pile de la machine vrituelle
             break;
+        case ND_ADD:
+            for (int i = 0; i < N.nb_children; i++) {
+                gennode(N.children[i])
+            }
         ...
 
         default:
@@ -91,8 +95,12 @@ SI = [
 
 Tableau des instructions
 
-| Noeud  | Préfixe | Suffixe |
-| ------ | ------- | ------- |
-| ND_ADD |         | add     |
-| ND_MUL |         | mul     |
-| ND_NEG | push 0  | sub     |
+| Noeud    | Préfixe | Suffixe |
+| -------- | ------- | ------- |
+| ND_ADD   |         | add     |
+| ND_MUL   |         | mul     |
+| ND_NEG   | push 0  | sub     |
+| ...      | ...     | ...     |
+| ND_DROP  |         | drop    |
+| ND_BLOCK |         |         |
+| ND_DEBUG |         | dbg     |
