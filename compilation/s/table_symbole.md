@@ -2,13 +2,25 @@
 
 ### Version facile
 
+```cpp
+enum SymbolType {
+    SYM_VARIABLE,
+    SYM_FUNCTION
+};
+
+struct Symbol {
+    SymbolType type;
+    int index; // Index of the symbol in the symbol table
+};
+```
+
 ### Declare
 
 Vérifie si j'ai le droit de déclarer une nouvelle variable
 
 Il faut donc vérifier que dans le **bloc courant** il n'y a pas le même nom de variable, sinon il déclenche une erreur.
 
-```
+```cpp
 Symbol declare(ident) {}
 ```
 
@@ -18,7 +30,7 @@ Symbol declare(ident) {}
 
 On essaye d'accéder à une variable en particulier, et renvoie le `Symbol` associé, et renvoie une **erreur fatale si pas trouvé**.
 
-```
+```cpp
 Symbol find(ident) {}
 ```
 
@@ -28,7 +40,7 @@ Itérer sur ma pile jusqu'à trouver ce que je cherche.
 
 Entrer dans un nouveau bloc
 
-```
+```cpp
 begin()
 ```
 
@@ -38,7 +50,7 @@ begin()
 
 On sort d'un bloc
 
-```
+```cpp
 end()
 ```
 
@@ -46,7 +58,7 @@ end()
 
 _Exemple_
 
-```
+```c
 { // begin
     int x; // declare
     x = 3; // find

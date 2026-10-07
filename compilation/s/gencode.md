@@ -36,34 +36,52 @@ printf("dbg") // Affiche le sommet de la pile
 
 ## Pseudo code `gencode()`
 
-```
+```cpp
 void gencode() {
-    Node A = anasem();
-    gennode(A);
+    Node N = anasem();
+    printf("resn %d\n", nbvar); // On réserve de l'espace pour les variables
+    gennode(N);
 }
 ```
 
-```
+```cpp
 void gennode(Node N) {
-    if (SI[N.type] != NULL) {
-        printf(SI[N.type].prefix)
+    for (int i = 0; i < nb_si; i++) {
+        if (SI[i].type == N.type) {
+            // Préfixe
+            if (!SI[i].prefix.empty()) {
+                printf("%s\n", SI[i].prefix.c_str());
+            }
+            // Enfants
+            for (int j = 0; j < N.nb_children; j++) {
+                gennode(N.children[j]);
+            }
+            // Suffixe
+            if (!SI[i].suffix.empty()) {
+                printf("%s\n", SI[i].suffix.c_str());
+            }
+            return;
+        }
+    }
+
+    switch (N.type) {
+        case ND_SEQUENCE:
+        case ND_BLOCK:
         for (int i = 0; i < N.nb_children; i++) {
             gennode(N.children[i]);
         }
-        print(SI[N.type].suffix)
-    }
-    switch (N.type) {
-        case ND_CONST:
-            printf("push", N.value); // On pousse sur le sommet de la pile de la machine vrituelle
-            break;
-        case ND_ADD:
-            for (int i = 0; i < N.nb_children; i++) {
-                gennode(N.children[i])
-            }
-        ...
+        break;
 
-        default:
-            throw Error();
+        case ND_CONST: printf("push %d\n", N.value); break;
+        case ND_REF: printf("get %d\n", N.index); break;
+
+        case ND_ASSIGNEMENT:
+            gennode(N.children[1]); // ND_CONST ou ND_REF
+            printf("dup\n"); // On duplique la valeur à assigner pour la garder sur la pile
+            printf("set %d\n", N.children[0].index); // On assigne la valeur à la variable
+            break;
+
+        // TODO: autre commande...
     }
 }
 ```
@@ -95,12 +113,13 @@ SI = [
 
 Tableau des instructions
 
-| Noeud    | Préfixe | Suffixe |
-| -------- | ------- | ------- |
-| ND_ADD   |         | add     |
-| ND_MUL   |         | mul     |
-| ND_NEG   | push 0  | sub     |
-| ...      | ...     | ...     |
-| ND_DROP  |         | drop    |
-| ND_BLOCK |         |         |
-| ND_DEBUG |         | dbg     |
+| Noeud       | Préfixe | Suffixe |
+| ----------- | ------- | ------- |
+| ND_ADD      |         | add     |
+| ND_MUL      |         | mul     |
+| ND_NEG      | push 0  | sub     |
+| $...$       | $...$   | $...$   |
+| ND_DROP     |         | drop    |
+| ND_BLOCK    |         |         |
+| ND_DEBUG    |         | dbg     |
+| ND_SEQUENCE |         |         |

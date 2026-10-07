@@ -12,24 +12,26 @@ Il doit produire une séquence de **token**.
 
 ## Exemple de structure
 
-    strucure Token {
-        // Structure minimale
-        int type;
-        int value; // Si type == tok_const
-        std::string ident; // Si type == tok_ident
+```cpp
+enum TokenType {
+    tok_if; // index 0
+    tok_plus; // index 1
+    tok_const; // ...
+    tok_ident;
+    ...
+}
 
-        // Bonus
-        int line;
-        int column;
-    }
+struct Token {
+    // Structure minimale
+    int type;
+    int value; // Si type == tok_const
+    std::string ident; // Si type == tok_ident
 
-    enum {
-        tok_if; // index 0
-        tok_plus; // index 1
-        tok_const; // ...
-        tok_ident;
-        ...
-    }
+    // Bonus
+    int line;
+    int column;
+}
+```
 
 ## Listes des tokens minimal
 
@@ -45,7 +47,7 @@ Il doit produire une séquence de **token**.
 
 Variables
 
-    Token courant;
+    Token current;
     Token last;
 
 ---

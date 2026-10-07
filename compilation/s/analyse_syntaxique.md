@@ -8,19 +8,21 @@ Puis on prend ces arbres, et on génère le code.
 
 ## Structure
 
-    struct Node {
-        int type; // enum
-        int value; // Si type = ND_CONST
-        std::string ident; // Si type = ND_ID<ENT
+```cpp
+struct Node {
+    int type; // enum
+    int value; // Si type = ND_CONST
+    std::string ident; // Si type = ND_ID<ENT
 
-        // Bonus
-        int line;
-        int column; // Optionnel
+    // Bonus
+    int line;
+    int column; // Optionnel
 
-        // Arbres
-        int nb_child; // Combien d'enfants pour ce noeud-là
-        std::vector<Node> childs;
-    }
+    // Arbres
+    int nb_child; // Combien d'enfants pour ce noeud-là
+    std::vector<Node> childs;
+}
+```
 
 ## Fonctions
 
@@ -143,11 +145,15 @@ Donc si je commence avec un `A`, si je fais des réécritures avec des règles q
 
 ---
 
+**Fonction**
+
 `F` $\rightarrow$ `I`
 
 > Une fonction contient une unique instruction
 
 ---
+
+**Instruction**
 
 `I` $\rightarrow$ `E ';'`
 
@@ -157,17 +163,23 @@ Par contre `a + 1 + 2;` devient une **instruction**
 
 > Une instruction contient une **expression** et un **point-virgule**
 
-- `E` renvoie un arbres expression, qu'il faut transformer en noeud instruction
+---
 
 `drop` $-$ `E`
 
-- On ajoute le mot-clé (instruction) `debug E ';'`, ainsi :
+- `E` renvoie un arbres expression, qu'il faut transformer en noeud instruction
+
+---
 
 `debug` $-$ `E`, donc `debug 3 + 4 * 5;` affichera $23$
 
-- Blocs : `{` `I*` `}`
+- On ajoute le mot-clé (instruction) `debug E ';'`, ainsi :
 
-Chaque bloc donne un **sous-arbre**
+---
+
+Chaque bloc donne u n **sous-arbre**
+
+- Blocs : `{` `I*` `}`
 
 On a donc un noeud `bloc` dans notre arbre, et chaque enfant est un noeud `I`.
 
@@ -175,11 +187,25 @@ On a donc un noeud `bloc` dans notre arbre, et chaque enfant est un noeud `I`.
 
 ---
 
+Déclaration de variables
+
+`I` $\rightarrow$ `int ident (';' ident)*;`
+
+Ainsi pour déclarer $n$ variables simultanément, on encapsule les declarations dans un noeud `ND_SEQUENCE`.
+
+![noeud séquence et déclarations multiples](../assets/declarations_sequence.png)
+
+---
+
+**Expression**
+
 `E` $\rightarrow$ `P`
 
 > Une expression s'occupe des **prefixes**
 
 ---
+
+**Préfixe**
 
 `P` $\rightarrow$ `-P | !P | S`
 
@@ -190,17 +216,21 @@ On a donc un noeud `bloc` dans notre arbre, et chaque enfant est un noeud `I`.
 
 ---
 
+**Suffixe**
+
 `S` $\rightarrow$ `A`
 
 > Opérations suffixes
 
 ---
 
-`A` $\rightarrow$ `const | '(' E ')'`
+**Atomique**
+
+`A` $\rightarrow$ `const | '(' E ')' | ident`
 
 Une expression entre **parenthèses** est également un **atome**
 
-Exemple :
+_Exemple_
 
 `1 + 2 - 3` $\leftrightarrow$ `1 + (2 - 3)` $\leftrightarrow$ `1 + -1` $\leftrightarrow$ `0`
 
@@ -227,7 +257,19 @@ Node I(...) {
     if (check(TOK_O_ACCOLADE)) {
         Node n = node(ND_BLOCK);
         while (!check(TOK_C_ACCOLADE)) {
-            add_child(N, I());
+            add_child(n, I());
+        }
+        return n;
+    }
+
+     if (check(TOK_INT)) {
+        Node n = node(ND_SEQUENCE);
+        accept(TOK_IDENT);
+        add_child(N, node_i(ND_DECL, last.ident));
+        while (!check(TOK_SEMICOLON)) {
+            accept(TOK_COLON);
+            accept(TOK_IDENT);
+            add_child(N, node_i(ND_DECL, last.ident));
         }
         return n;
     }
@@ -342,15 +384,22 @@ Node P(...) {
 ```
 
 Node A(...) {
-if (check(TOK_CONST)) {
-return node_v(ND_CONST, last.value);
-}
+    if (check(TOK_CONST)) {
+        return node_v(ND_CONST, last.value);
+    }
 
     if (check(TOK_O_PARENTHESIS)) {
         Node e = E();
         accept(TOK_C_PARENTHESIS);
         return e;
     }
+
+    // Pas sûr
+    if (check(TOK_IDENT)) { // Identificateur
+        return node_i(ND_IDENT, last.ident)
+    }
+
+
     ... // Autre alternative
 
     throw Error(); // Renvoie une erreur (contrat non-respecté)
@@ -365,6 +414,10 @@ Finalement, `anasynt()` :
         Node A = F(); // Appel à F
         return A;
     }
+
+#### Table de symbole
+
+[Table de symbole cours](./table_symbole.md)
 
 #### Variables
 
@@ -394,6 +447,47 @@ Pour accéder à une variable, je parcours les **variables actuellement accessib
 
 **La table de symbole** fourni **l'analyse sémantique :** Il doit interpréter les déclarations de variables, et faire les liens entre les déclarations et les utilisations via les **annotations** et la **table de symbole**
 
-#### Table de symbole
+Concrètement, on va devoir :
 
-[Table de symbole cours](./table_symbole.md)
+- **Déclaration(s)** `int a, b, c;`
+- **Consultations** `a = 5;`
+- **Affectations** `a + 3`
+
+> On ne déclarera pas l'initialisation (càd la déclaration et affectation simultanée `int a = 3;`)
+
+On pourrait le faire en créant un noeud `déclaration+affectation` dans l'arbre sémantique (optionnel).
+
+**ou**
+
+L'analyseur syntaxique peut le traduire en :
+
+    int a;
+    a = 0;
+
+![initialisation](../assets/initialisation.png)
+
+#### Allocation mémoire
+
+| ---- | --        | --------------------- | --   |
+| ---- | --------- | --------------------- | ---- |
+| code | statiques | tas                   | pile |
+
+- **Tas :** toute la mémoire qui peut survivre après l'appel d'une fonction
+- **Pile :** variables locales (ou fonctions qui libèrent la mémoire à la fin de l'appel)
+
+#### Pile
+
+`1 + a + 3`
+
+| Pile         |
+| ------------ |
+| -            |
+| -            |
+| -            |
+| _(SP)_       |
+| **b**        |
+| **a** _(BP)_ |
+
+- `push 1`
+- `get 1` (index 1 depuis _BP_ pour récupérer $a$)
+- `add 1`
