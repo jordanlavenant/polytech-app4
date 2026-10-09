@@ -491,3 +491,9 @@ L'analyseur syntaxique peut le traduire en :
 - `push 1`
 - `get 1` (index 1 depuis _BP_ pour récupérer $a$)
 - `add 1`
+
+`a = 3`
+
+- `push 3` (const) ou `get _` (ref)
+- `dup`
+- `set _`
