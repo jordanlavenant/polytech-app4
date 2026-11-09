@@ -9,7 +9,7 @@
 - Application : données brute
 - Transport : TCP/UDP $\rightarrow$ Interprocessus de la machine
 - Réseau : IP transport des packets
-- Liaison : Ethernet (identification de l'@marc source et destination, et d'autres trucs)
+- Liaison : Ethernet (identification de l'@mac source et destination, et d'autres trucs)
 
 **Encapsulation :** Processus par lequel les protocoles ajoutent leurs informations aux données
 
