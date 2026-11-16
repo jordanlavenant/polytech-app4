@@ -497,3 +497,76 @@ L'analyseur syntaxique peut le traduire en :
 - `push 3` (const) ou `get _` (ref)
 - `dup`
 - `set _`
+
+#### Conditionnel
+
+`I` $\rightarrow$ `if` `(` `E` `)` `I` (`else` `I`)?
+
+![arbre_cond](../assets/arbre_cond.png)
+
+```
+else if (check(TOK_IF)) {
+    // If
+    accept(TOK_O_PARENTHESIS);
+    node e = E();
+    accept(TOK_C_PARENTHESIS);
+    node i1 = I();
+    Node r = node_2(ND_COND, e, i1);
+    // Else
+    if (check(TOK_ELSE)) {
+        node i2 = I();
+        add_child(r, i2);
+    }
+    return r;
+}
+```
+
+#### Boucles
+
+##### While
+
+`I` $\rightarrow$ `while` `(E)` `I` `|` `break;`
+
+On rajoute le noeud `ND_LOOP`, et `ND_BREAK`.
+
+```
+else if (check(TOK_WHILE)) {
+    // While
+    accept(TOK_WHILE);
+    Node e = E();
+    accept(TOK_C_PARENTHESIS);
+    Node i = I();
+
+    Node l = node(ND_LOOP);
+    Node c = node(ND_COND);
+    Node b = node(ND_BREAK);
+
+    add_child(l, c);
+    add_child(c, e);
+    add_child(c, i);
+    add_child(c, b);
+
+    return l;
+}
+```
+
+##### Do While
+
+`I` $\rightarrow$ `do` `{` `I` `}` `while` `(E);`
+
+##### For
+
+`I` $\rightarrow$ `for` `(` `E1;E2;E3` `)` `I`
+
+```
+else if (check(TOK_FOR)) {
+    accept(TOK_FOR);
+    accept(TOK_O_PARENTHESIS);
+    node e1 = E();
+    accept(TOK_SEMICOLON);
+    node e2 = E();
+    accept(TOK_SEMICOLON);
+    node e3 = E();
+    accept(TOK_C_PARENTHESIS);
+}
+```

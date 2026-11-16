@@ -123,3 +123,64 @@ Tableau des instructions
 | ND_BLOCK    |         |         |
 | ND_DEBUG    |         | dbg     |
 | ND_SEQUENCE |         |         |
+
+### Conditionnel
+
+![arbre_cond](../assets/arbre_cond.png)
+
+Executer `E`, en fonction du résultat executer `I1` **ou potentiellement** `I2`.
+
+![gencode_cond](../assets/gencode_cond.png)
+
+Le label correspond au **compteur**.
+
+```
+...
+case ND_COND:
+    int label = nb_label++;
+    gennode(N.children[0]);
+    printf('jumpf l%d', nb_label);
+    gennode(N.children[1]);
+...
+```
+
+### Boucles
+
+Noeud `ND_LOOP` et `ND_BREAK`
+
+![arbre_loop](../assets/arbre_loop.png)
+
+```
+int nb_break = 0; // variable globale
+
+case ND_LOOP:
+    int nb_b = nb_b++;
+    // Sauvegarde locale
+    int save = nb_break;
+    nb_break = nb_b;
+
+    printf(".b%d\n", nb_b);
+    for (int i = 0; i < N.nb_children; i++) {
+        Node E = N.children[i];
+        gennode(E);
+    }
+    printf("jump b%d\n", nb_b);
+    printf(".e%d\n", nb_b);
+    // Restauration de la sauvegarde
+    nb_break = save;
+
+case ND_BREAK:
+    printf("jump e%d\n", nb_break);
+```
+
+Arbre `while`
+
+![arbre_while](../assets/arbre_while.png)
+
+Arbre `do while`
+
+![arbre_do_while](../assets/arbre_do_while.png)
+
+Arbre `for`
+
+![arbre_for](../assets/arbre_for.png)
